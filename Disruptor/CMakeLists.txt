@@ -1,11 +1,6 @@
 project(Disruptor)
 cmake_minimum_required(VERSION 2.6)
 
-find_package(Boost COMPONENTS system thread chrono)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-endif()
 
 include_directories("..")
 
@@ -115,7 +110,6 @@ set(Disruptor_headers
 )
 
 add_library(DisruptorShared SHARED ${Disruptor_sources})
-target_link_libraries(DisruptorShared ${Boost_LIBRARIES})
 set_target_properties(DisruptorShared PROPERTIES OUTPUT_NAME Disruptor)
 set_target_properties(DisruptorShared PROPERTIES VERSION ${DISRUPTOR_VERSION})
 set_target_properties(DisruptorShared PROPERTIES SOVERSION ${DISRUPTOR_VERSION_MAJOR})

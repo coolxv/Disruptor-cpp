@@ -1,5 +1,4 @@
-//g++ -std=c++14 -pthread -O3 -DNDEBUG  -rdynamic DisruptorDemo.cpp -o DisruptorDemo  -I../ -L/root/Disruptor-cpp/example/../build/Disruptor -Wl,-rpath,/root/Disruptor-cpp/example/../build/Disruptor -lDisruptor -lboost_system -lboost_thread -lboost_chrono 
-// DisruptorDemo.cpp
+//g++ -std=c++14 -g -rdynamic DisruptorDemo.cpp -o DisruptorDemo  -I../ -L/root/Disruptor-cpp/example/../build/Disruptor -Wl,-rpath,/root/Disruptor-cpp/example/../build/Disruptor -lDisruptor 
 #include "Disruptor/Disruptor.h"
 #include "Disruptor/ThreadPerTaskScheduler.h"
 #include <iostream>
@@ -8,6 +7,7 @@
 #include <memory>
 #include <cstdlib>
 #include <time.h>
+#include <unistd.h>
 
 // 定义事件体
 struct Event

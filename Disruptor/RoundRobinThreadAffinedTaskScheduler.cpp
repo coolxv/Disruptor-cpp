@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "RoundRobinThreadAffinedTaskScheduler.h"
 
-#include <boost/date_time.hpp>
 
 #include "ArgumentOutOfRangeException.h"
 #include "ThreadHelper.h"
@@ -33,7 +32,7 @@ namespace Disruptor
         for (auto&& thread : m_threads)
         {
             if (thread.joinable())
-                thread.timed_join(boost::posix_time::seconds(10));
+                thread.join();
         }
     }
 
