@@ -1,6 +1,7 @@
 //g++ -std=c++14 -g -rdynamic DisruptorDemo.cpp -o DisruptorDemo  -I../ -L/root/Disruptor-cpp/example/../build/Disruptor -Wl,-rpath,/root/Disruptor-cpp/example/../build/Disruptor -lDisruptor 
 #include "Disruptor/Disruptor.h"
 #include "Disruptor/ThreadPerTaskScheduler.h"
+#include "Disruptor/TypeInfo.h"
 #include <iostream>
 #include <string>
 #include <cstdint>
@@ -42,7 +43,7 @@ public:
     {
         //usleep(1000);
         _actuallyProcessed++;
-	    std::cout << "work1:"  << event.id << ":" << std::this_thread::get_id() << ":" << _actuallyProcessed << std::endl;
+	    std::cout << "work1:"  << event.id << ":" << std::this_thread::get_id() << ":" << sequence << std::endl;
     }
 
 private:
@@ -58,7 +59,57 @@ public:
     {
         //usleep(1000);
         _actuallyProcessed++;
-	    std::cout << "work2:"  << event.id << ":" << std::this_thread::get_id() << ":" << _actuallyProcessed << std::endl;
+	    std::cout << "work2:"  << event.id << ":" << std::this_thread::get_id() << ":" << sequence << std::endl;
+    }
+
+private:
+    int32_t _actuallyProcessed{ 0 };
+};
+
+// 继承事件处理器接口
+class Worker3 : public Disruptor::IEventHandler< Event >
+{
+public:
+    explicit Worker3(){}
+    // 重写事件处理回调函数
+    void onEvent(Event& event, std::int64_t sequence, bool endOfBatch) override
+    {
+        //usleep(1000);
+        _actuallyProcessed++;
+	    std::cout << "work3:"  << event.id << ":" << std::this_thread::get_id() << ":" << sequence << std::endl;
+    }
+
+private:
+    int32_t _actuallyProcessed{ 0 };
+};
+
+
+// 继承事件处理器接口
+class Worker4 : public Disruptor::IEventHandler< Event >
+{
+public:
+    explicit Worker4(){}
+    // 重写事件处理回调函数
+    void onEvent(Event& event, std::int64_t sequence, bool endOfBatch) override
+    {
+        //usleep(1000);
+        _actuallyProcessed++;
+	    std::cout << "work4:"  << event.id << ":" << std::this_thread::get_id() << ":" << sequence << std::endl;
+    }
+
+private:
+    int32_t _actuallyProcessed{ 0 };
+};
+class Worker5 : public Disruptor::IEventHandler< Event >
+{
+public:
+    explicit Worker5(){}
+    // 重写事件处理回调函数
+    void onEvent(Event& event, std::int64_t sequence, bool endOfBatch) override
+    {
+        //usleep(1000);
+        _actuallyProcessed++;
+	    std::cout << "work5:"  << event.id << ":" << std::this_thread::get_id() << ":" << sequence << std::endl;
     }
 
 private:
@@ -77,16 +128,41 @@ public:
         // 创建Disruptor
         m_ptrDisruptor = std::make_shared< Disruptor::disruptor<Event> >([]() { return Event(); }
         , m_ringBufferSize, m_ptrTaskScheduler);
+		
         // 创建事件处理器
         for (size_t i = 0; i < m_workerCount; i++)
         {
             m_workers.push_back(std::make_shared< Worker >());
         }
-        // 绑定
+		auto w1 = std::make_shared< Worker1 >();
+		auto w2 = std::make_shared< Worker2 >();
+		auto w3 = std::make_shared< Worker3 >();
+		auto w4 = std::make_shared< Worker4 >();
+		auto w5 = std::make_shared< Worker5 >();
+		
+        // example1
         //m_ptrDisruptor->handleEventsWithWorkerPool(m_workers);
-        m_ptrDisruptor->handleEventsWithWorkerPool(m_workers)->then(std::make_shared< Worker2 >())->then(std::make_shared< Worker1 >());
-        //m_ptrDisruptor->handleEventsWith(std::make_shared< Worker1 >());
+        //m_ptrDisruptor->handleEventsWithWorkerPool(m_workers)->then(std::make_shared< Worker2 >())->then(std::make_shared< Worker1 >());
+        //m_ptrDisruptor->handleEventsWith(std::make_shared< Worker1 >())->then(std::make_shared< Worker2 >());
         //m_ptrDisruptor->handleEventsWith(std::make_shared< Worker2 >());
+
+        // example2
+		//m_ptrDisruptor->handleEventsWith({w1, w2});
+		//m_ptrDisruptor->after(w1)->handleEventsWith(w3);
+		//m_ptrDisruptor->after(w2)->handleEventsWith(w4);
+		//m_ptrDisruptor->after({w3, w4})->handleEventsWith(w5);
+		// example3
+		//m_ptrDisruptor->handleEventsWith(w1);
+		//m_ptrDisruptor->handleEventsWithWorkerPool(m_workers)->then(w4);
+		//m_ptrDisruptor->after(w1)->handleEventsWith(w3);
+		//m_ptrDisruptor->after({w3, w4})->handleEventsWith(w5);
+
+		// example4
+		m_ptrDisruptor->handleEventsWith({w1, w2});
+		m_ptrDisruptor->after(w1)->handleEventsWith(w3);
+		m_ptrDisruptor->after(w2)->handleEventsWithWorkerPool(m_workers);
+		m_ptrDisruptor->after(w3)->handleEventsWith(w5);
+		
     }
 
     ~Producer()
@@ -129,9 +205,11 @@ int main(int argc, char* argv[])
 {
     timespec t1,t2;
     clock_gettime(CLOCK_MONOTONIC, &t1);
-
+	std::cout << Disruptor::Utils::getMetaTypeInfo< Disruptor::disruptor<Event>>().fullyQualifiedName() << std::endl;
+	std::cout << Disruptor::Utils::getMetaTypeInfo< Disruptor::disruptor<Event>>().name() << std::endl;
     if(argc < 4)
         return 0;
+
 
     Producer producer(atoi(argv[1]), atoi(argv[2]));
     producer.start();
