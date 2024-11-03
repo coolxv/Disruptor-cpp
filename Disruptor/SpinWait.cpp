@@ -112,17 +112,28 @@ namespace Disruptor
 
     void SpinWait::yieldProcessor()
     {
-#if defined(DISRUPTOR_VC_COMPILER)
+#if defined(DISRUPTOR_STD_YIELD)
+
+        std::this_thread::yield();
+        
+#elif defined(DISRUPTOR_VC_COMPILER)
 
         ::YieldProcessor();
 
 #elif defined(DISRUPTOR_GNUC_COMPILER)
 
+#if defined(DISRUPTOR_CPU_ARM)
         asm volatile
-            (
-                "rep\n"
-                "nop"
-                );
+        (
+            "yield"
+        );
+#else
+        asm volatile
+        (
+            "rep\n"
+            "nop"
+        );
+#endif
 
 #else
 

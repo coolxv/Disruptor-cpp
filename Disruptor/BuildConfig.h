@@ -31,7 +31,13 @@
 
 # define DISRUPTOR_CPP_11
 
-# if __x86_64__ || __ppc64__
+# if __arm__
+#  define DISRUPTOR_CPU_ARM
+#  define DISRUPTOR_CPU_ARM_32
+# #elif __aarch64__
+#  define DISRUPTOR_CPU_ARM
+#  define DISRUPTOR_CPU_ARM_64
+# elif __x86_64__ || __ppc64__
 #  define DISRUPTOR_CPU_64
 # else
 #  define DISRUPTOR_CPU_32
@@ -79,4 +85,9 @@
 # define UNREFERENCED_PARAMETER(P)          (P)
 # define DBG_UNREFERENCED_PARAMETER(P)      (P)
 # define DBG_UNREFERENCED_LOCAL_VARIABLE(V) (V)
+#endif
+
+// detect C++17
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+  # define DISRUPTOR_CPP_17
 #endif
